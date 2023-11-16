@@ -11,7 +11,7 @@ async fn test_endpoint_get_all_users_good() {
     let (server, _) = test_server();
     let response = server.get("/users").await;
 
-    response.assert_status_ok()
+    response.assert_status(StatusCode::OK)
 }
 
 #[tokio::test]
@@ -19,7 +19,7 @@ async fn test_endpoint_get_single_user_good() {
     let (server, _) = test_server();
     let response = server.get("/users/1").await;
 
-    response.assert_status_ok()
+    response.assert_status(StatusCode::OK)
 }
 
 #[tokio::test]
@@ -27,10 +27,9 @@ async fn test_endpoint_get_single_user_bad() {
     let (server, _) = test_server();
     let response = server.get("/users/2").await;
 
-    response.assert_status(StatusCode::NO_CONTENT)
+    response.assert_status(StatusCode::BAD_REQUEST)
 }
 
-// TODO zapytac sie o to czy tyle wystarczy (czy uzyc tez geta zeby sprawdzic baze)
 #[tokio::test]
 async fn test_endpoint_post_user_good() {
     let (server, _) = test_server();

@@ -25,7 +25,7 @@ pub async fn get_user_single_handler(
     };
 
     match db.iter().find(|user| user.id == id) {
-        None => StatusCode::NO_CONTENT.into_response(),
+        None => StatusCode::BAD_REQUEST.into_response(),
         Some(user) => Json(StripedUser {
             name: user.name.clone(),
             lastname: user.lastname.clone(),
@@ -84,7 +84,7 @@ pub async fn patch_user_handler(
 
         StatusCode::NO_CONTENT
     } else {
-        StatusCode::NOT_FOUND
+        StatusCode::BAD_REQUEST
     }
 }
 
