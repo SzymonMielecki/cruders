@@ -26,11 +26,13 @@ pub async fn get_user_single_handler(
 
     match db.iter().find(|user| user.id == id) {
         None => StatusCode::BAD_REQUEST.into_response(),
-        Some(user) => Json(StripedUser {
-            name: user.name.clone(),
-            lastname: user.lastname.clone(),
-        })
-        .into_response(),
+        Some(user) => {
+            let data = StripedUser {
+                name: user.name.clone(),
+                lastname: user.lastname.clone(),
+            };
+            Json(data).into_response()
+        }
     }
 }
 
@@ -40,11 +42,11 @@ pub async fn post_user_handler(
 ) -> impl IntoResponse {
     let mut db = db.lock().await;
 
-    let biggest_id_user_opt = db.iter().max_by_key(|u| u.id);
-    let biggest_id = match biggest_id_user_opt {
+    let biggest_id = match db.iter().max_by_key(|u| u.id) {
         Some(biggest_id_user) => biggest_id_user.id,
         None => 0,
     };
+
     let record = User {
         id: biggest_id + 1,
         name: body.name,
@@ -69,17 +71,14 @@ pub async fn patch_user_handler(
     };
 
     if let Some(user) = db.iter_mut().find(|user| user.id == id) {
-        let name = body.name.unwrap_or_else(|| user.name.to_owned());
-        let lastname = body.lastname.unwrap_or_else(|| user.lastname.to_owned());
-
-        if name == user.name && lastname == user.lastname {
+        if body.name.is_none() && body.lastname.is_none() {
             return StatusCode::UNPROCESSABLE_ENTITY;
         }
 
         *user = User {
             id: user.id.to_owned(),
-            name,
-            lastname,
+            name: body.name.unwrap_or_else(|| user.name.to_owned()),
+            lastname: body.lastname.unwrap_or_else(|| user.lastname.to_owned()),
         };
 
         StatusCode::NO_CONTENT
