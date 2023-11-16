@@ -1,13 +1,11 @@
 mod handler;
 mod model;
 mod route;
-mod structs;
-
+use crate::route::{create_db, create_router, join_router_db};
 use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method,
 };
-use route::create_router;
 use tower_http::cors::CorsLayer;
 
 #[tokio::main]
@@ -18,7 +16,8 @@ async fn main() {
         .allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
-    let app = create_router().layer(cors);
+    let db = create_db();
+    let app = join_router_db(create_router().layer(cors), &db);
 
     println!("🚀 Server started successfully");
     axum::Server::bind(&"0.0.0.0:8000".parse().unwrap())
@@ -27,4 +26,6 @@ async fn main() {
         .unwrap();
 }
 #[cfg(test)]
-mod tests;
+mod integration_tests;
+#[cfg(test)]
+mod unit_tests;

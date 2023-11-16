@@ -20,12 +20,12 @@ pub async fn get_user_single_handler(
     let db = db.lock().await;
 
     let id = match id_string.parse::<u32>() {
-        Err(_) => return StatusCode::BAD_GATEWAY.into_response(),
+        Err(_) => return StatusCode::BAD_REQUEST.into_response(),
         Ok(id) => id,
     };
 
-    match db.iter().find(|user| user.id == Some(id)) {
-        None => StatusCode::BAD_REQUEST.into_response(),
+    match db.iter().find(|user| user.id == id) {
+        None => StatusCode::NO_CONTENT.into_response(),
         Some(user) => Json(StripedUser {
             name: user.name.clone(),
             lastname: user.lastname.clone(),
@@ -36,18 +36,22 @@ pub async fn get_user_single_handler(
 
 pub async fn post_user_handler(
     State(db): State<DB>,
-    Json(mut body): Json<User>,
+    Json(body): Json<StripedUser>,
 ) -> impl IntoResponse {
     let mut db = db.lock().await;
 
     let biggest_id_user_opt = db.iter().max_by_key(|u| u.id);
     let biggest_id = match biggest_id_user_opt {
-        Some(biggest_id_user) => biggest_id_user.id.unwrap_or(0),
+        Some(biggest_id_user) => biggest_id_user.id,
         None => 0,
     };
-    body.id = Some(biggest_id + 1);
+    let record = User {
+        id: biggest_id + 1,
+        name: body.name,
+        lastname: body.lastname,
+    };
 
-    db.push(body);
+    db.push(record);
 
     StatusCode::CREATED
 }
@@ -60,13 +64,17 @@ pub async fn patch_user_handler(
     let mut db = db.lock().await;
 
     let id = match id_string.parse::<u32>() {
-        Err(_) => return StatusCode::BAD_GATEWAY,
+        Err(_) => return StatusCode::BAD_REQUEST,
         Ok(id) => id,
     };
 
-    if let Some(user) = db.iter_mut().find(|user| user.id == Some(id)) {
+    if let Some(user) = db.iter_mut().find(|user| user.id == id) {
         let name = body.name.unwrap_or_else(|| user.name.to_owned());
         let lastname = body.lastname.unwrap_or_else(|| user.lastname.to_owned());
+
+        if name == user.name && lastname == user.lastname {
+            return StatusCode::UNPROCESSABLE_ENTITY;
+        }
 
         *user = User {
             id: user.id.to_owned(),
@@ -74,7 +82,7 @@ pub async fn patch_user_handler(
             lastname,
         };
 
-        StatusCode::OK
+        StatusCode::NO_CONTENT
     } else {
         StatusCode::NOT_FOUND
     }
@@ -88,22 +96,22 @@ pub async fn put_user_handler(
     let mut db = db.lock().await;
 
     let id = match id_string.parse::<u32>() {
-        Err(_) => return StatusCode::BAD_GATEWAY,
+        Err(_) => return StatusCode::BAD_REQUEST,
         Ok(id) => id,
     };
 
     let payload = User {
-        id: Some(id),
+        id,
         name: body.name,
         lastname: body.lastname,
     };
 
-    if let Some(user) = db.iter_mut().find(|user| user.id == Some(id)) {
+    if let Some(user) = db.iter_mut().find(|user| user.id == id) {
         *user = payload;
     } else {
         db.push(payload);
     }
-    StatusCode::OK
+    StatusCode::NO_CONTENT
 }
 
 pub async fn delete_user_handler(
@@ -113,14 +121,14 @@ pub async fn delete_user_handler(
     let mut db = db.lock().await;
 
     let id = match id_string.parse::<u32>() {
-        Err(_) => return StatusCode::BAD_GATEWAY,
+        Err(_) => return StatusCode::BAD_REQUEST,
         Ok(id) => id,
     };
 
-    if let Some(pos) = db.iter().position(|user| user.id == Some(id)) {
+    if let Some(pos) = db.iter().position(|user| user.id == id) {
         db.remove(pos);
-        StatusCode::OK
+        StatusCode::NO_CONTENT
     } else {
-        StatusCode::NOT_FOUND
+        StatusCode::BAD_REQUEST
     }
 }
