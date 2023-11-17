@@ -6,6 +6,7 @@ use crate::{
         post_user_handler, put_user_handler,
     },
     model::{self, User},
+    Db,
 };
 use axum::{routing::get, Router};
 use tokio::sync::Mutex;
@@ -26,6 +27,6 @@ pub fn create_db() -> Arc<Mutex<Vec<User>>> {
     model::user_db()
 }
 
-pub fn join_router_db(router: Router<Arc<Mutex<Vec<User>>>>, db: &Arc<Mutex<Vec<User>>>) -> Router {
-    router.with_state(db.to_owned())
+pub fn join_router_db(router: Router<Arc<Mutex<Vec<User>>>>, db: Db) -> Router {
+    router.with_state(db)
 }

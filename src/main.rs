@@ -2,12 +2,16 @@ mod handler;
 mod model;
 mod route;
 mod test_helper;
-use crate::route::{create_db, create_router, join_router_db};
+use crate::route::create_router;
+mod db;
 use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method,
 };
+use surrealdb::{engine::local::Db as LocalDb, Surreal};
 use tower_http::cors::CorsLayer;
+
+type Db = Surreal<LocalDb>;
 
 #[tokio::main]
 async fn main() {
@@ -17,9 +21,9 @@ async fn main() {
         .allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
-    let db = create_db();
-    let app = join_router_db(create_router().layer(cors), &db);
+    let db = db::init_users_db().await;
 
+    let app = join_router_db(create_router().layer(cors), )
     println!("🚀 Server started successfully");
     axum::Server::bind(&"0.0.0.0:8000".parse().unwrap())
         .serve(app.into_make_service())
