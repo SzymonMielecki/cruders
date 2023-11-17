@@ -1,24 +1,30 @@
 use axum_test::TestServer;
 use serde::Serialize;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use surrealdb::{
+    sql::{Id, Thing},
+    Result,
+};
 
 use crate::{
-    model::{NamePatch, StripedUser, User},
+    db::init_users_db,
+    model::{Db, NamePatch, StripedUser, User},
     route::{create_router, join_router_db},
 };
 
-pub fn test_server() -> (TestServer, Arc<Mutex<Vec<User>>>) {
-    let db = test_db();
-    let app = join_router_db(create_router(), &db);
+pub async fn test_server() -> Result<(TestServer, Db)> {
+    let db = init_users_db().await?;
+    db.use_ns("users").use_db("users").await?;
+
+    let _: Option<User> = db
+        .create(("users", "ebk6yszjd43bl4k2sry1"))
+        .content(stripped_from_full(record_1()))
+        .await?;
+
+    let app = join_router_db(create_router(), db.clone());
 
     let server = TestServer::new(app).unwrap();
 
-    (server, db)
-}
-
-pub fn test_db() -> Arc<Mutex<Vec<User>>> {
-    Arc::new(Mutex::new(vec![record_1()]))
+    Ok((server, db))
 }
 
 pub fn test_db_raw() -> Vec<User> {
@@ -29,13 +35,12 @@ pub fn test_db_empty_raw() -> Vec<User> {
     vec![]
 }
 
-pub fn test_db_pushed_raw() -> Vec<User> {
-    vec![record_1(), record_2()]
-}
-
 pub fn record_1() -> User {
     User {
-        id: 1,
+        id: Some(Thing {
+            tb: "users".into(),
+            id: Id::String("ebk6yszjd43bl4k2sry1".into()),
+        }),
         name: String::from("John"),
         lastname: String::from("Doe"),
     }
@@ -43,7 +48,10 @@ pub fn record_1() -> User {
 
 pub fn record_1_patched() -> User {
     User {
-        id: 1,
+        id: Some(Thing {
+            tb: "users".into(),
+            id: Id::String("ebk6yszjd43bl4k2sry1".into()),
+        }),
         name: String::from("Jan"),
         lastname: String::from("Doe"),
     }
@@ -62,7 +70,20 @@ pub fn patch_name_from_full(user: User) -> NamePatch {
 
 pub fn record_2() -> User {
     User {
-        id: 2,
+        id: None,
+
+        name: String::from("Jan"),
+        lastname: String::from("Kowalski"),
+    }
+}
+
+pub fn record_2_from_id(id: String) -> User {
+    User {
+        id: Some(Thing {
+            tb: "users".into(),
+            id: Id::String(id),
+        }),
+
         name: String::from("Jan"),
         lastname: String::from("Kowalski"),
     }

@@ -5,129 +5,85 @@ use axum::{
     Json,
 };
 
-use crate::model::{PatchUserSchema, StripedUser, User, DB};
+use crate::{
+    db::{delete_user, get_all_users, get_single_user, patch_user, post_user, put_user},
+    model::{Db, PatchUserSchema, StripedUser, User},
+    test_helper::stripped_from_full,
+};
 
-pub async fn get_user_all_handler(State(db): State<DB>) -> impl IntoResponse {
-    let db = db.lock().await;
+pub async fn get_user_all_handler(State(db): State<Db>) -> impl IntoResponse {
+    let users_res = get_all_users(&db).await;
 
-    Json(db.clone().into_iter().collect::<Vec<User>>())
+    match users_res {
+        Ok(users) => Json(users).into_response(),
+        Err(_) => StatusCode::BAD_REQUEST.into_response(),
+    }
 }
 
 pub async fn get_user_single_handler(
-    State(db): State<DB>,
-    Path(id_string): Path<String>,
+    State(db): State<Db>,
+    Path(id): Path<String>,
 ) -> impl IntoResponse {
-    let db = db.lock().await;
+    let user = get_single_user(&db, id).await;
 
-    let id = match id_string.parse::<u32>() {
-        Err(_) => return StatusCode::BAD_REQUEST.into_response(),
-        Ok(id) => id,
-    };
-
-    match db.iter().find(|user| user.id == id) {
-        None => StatusCode::BAD_REQUEST.into_response(),
-        Some(user) => {
-            let data = StripedUser {
-                name: user.name.clone(),
-                lastname: user.lastname.clone(),
-            };
-            Json(data).into_response()
-        }
+    match user {
+        Err(_) => StatusCode::BAD_REQUEST.into_response(),
+        Ok(user) => Json(stripped_from_full(user)).into_response(),
     }
 }
 
 pub async fn post_user_handler(
-    State(db): State<DB>,
+    State(db): State<Db>,
     Json(body): Json<StripedUser>,
 ) -> impl IntoResponse {
-    let mut db = db.lock().await;
-
-    let biggest_id = match db.iter().max_by_key(|u| u.id) {
-        Some(biggest_id_user) => biggest_id_user.id,
-        None => 0,
-    };
-
     let record = User {
-        id: biggest_id + 1,
+        id: None,
         name: body.name,
         lastname: body.lastname,
     };
 
-    db.push(record);
+    let res = post_user(&db, record).await;
 
-    StatusCode::CREATED
+    match res {
+        Ok(id) => (StatusCode::CREATED, id).into_response(),
+        Err(_) => StatusCode::BAD_REQUEST.into_response(),
+    }
 }
 
 pub async fn patch_user_handler(
-    State(db): State<DB>,
-    Path(id_string): Path<String>,
+    State(db): State<Db>,
+    Path(id): Path<String>,
     Json(body): Json<PatchUserSchema>,
 ) -> impl IntoResponse {
-    let mut db = db.lock().await;
+    let res = patch_user(&db, id, body).await;
 
-    let id = match id_string.parse::<u32>() {
-        Err(_) => return StatusCode::BAD_REQUEST,
-        Ok(id) => id,
-    };
-
-    if let Some(user) = db.iter_mut().find(|user| user.id == id) {
-        if body.name.is_none() && body.lastname.is_none() {
-            return StatusCode::UNPROCESSABLE_ENTITY;
-        }
-
-        *user = User {
-            id: user.id.to_owned(),
-            name: body.name.unwrap_or_else(|| user.name.to_owned()),
-            lastname: body.lastname.unwrap_or_else(|| user.lastname.to_owned()),
-        };
-
-        StatusCode::NO_CONTENT
-    } else {
-        StatusCode::BAD_REQUEST
+    match res {
+        Ok(_) => StatusCode::NO_CONTENT,
+        Err(_) => StatusCode::BAD_REQUEST,
     }
 }
 
 pub async fn put_user_handler(
-    State(db): State<DB>,
-    Path(id_string): Path<String>,
+    State(db): State<Db>,
+    Path(id): Path<String>,
     Json(body): Json<StripedUser>,
 ) -> impl IntoResponse {
-    let mut db = db.lock().await;
+    let res = put_user(&db, id, body).await;
 
-    let id = match id_string.parse::<u32>() {
-        Err(_) => return StatusCode::BAD_REQUEST,
-        Ok(id) => id,
-    };
-
-    let payload = User {
-        id,
-        name: body.name,
-        lastname: body.lastname,
-    };
-
-    if let Some(user) = db.iter_mut().find(|user| user.id == id) {
-        *user = payload;
-    } else {
-        db.push(payload);
+    match res {
+        Ok(_) => StatusCode::NO_CONTENT,
+        Err(_) => StatusCode::BAD_REQUEST,
     }
-    StatusCode::NO_CONTENT
 }
 
 pub async fn delete_user_handler(
-    State(db): State<DB>,
-    Path(id_string): Path<String>,
+    State(db): State<Db>,
+    Path(id): Path<String>,
 ) -> impl IntoResponse {
-    let mut db = db.lock().await;
+    let res = delete_user(&db, id).await;
 
-    let id = match id_string.parse::<u32>() {
-        Err(_) => return StatusCode::BAD_REQUEST,
-        Ok(id) => id,
-    };
-
-    if let Some(pos) = db.iter().position(|user| user.id == id) {
-        db.remove(pos);
-        StatusCode::NO_CONTENT
-    } else {
-        StatusCode::BAD_REQUEST
+    match res {
+        Ok(_) => StatusCode::NO_CONTENT,
+        Err(_) => StatusCode::BAD_REQUEST,
     }
 }
