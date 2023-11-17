@@ -3,13 +3,14 @@ use serde_json::json;
 use surrealdb::Result;
 
 use crate::test_helper::{
-    bad_json, patch_name_from_full, record_2, stripped_from_full, test_server,
+    patch_name_from_full, record_2, stripped_from_full, test_server, BadJson,
 };
 
 #[tokio::test]
 async fn test_endpoint_get_all_users_good() -> Result<()> {
     let (server, _) = test_server().await?;
     let response = server.get("/users").await;
+
     response.assert_status(StatusCode::OK);
     Ok(())
 }
@@ -44,7 +45,7 @@ async fn test_endpoint_post_user_good() -> Result<()> {
 #[tokio::test]
 async fn test_endpoint_post_user_bad() -> Result<()> {
     let (server, _) = test_server().await?;
-    let response = server.post("/users").json(&json!(bad_json())).await;
+    let response = server.post("/users").json(&json!(BadJson::new())).await;
 
     response.assert_status(StatusCode::UNPROCESSABLE_ENTITY);
     Ok(())
@@ -57,6 +58,7 @@ async fn test_endpoint_patch_user_good() -> Result<()> {
         .patch("/users/ebk6yszjd43bl4k2sry1")
         .json(&json!(patch_name_from_full(record_2())))
         .await;
+
     response.assert_status(StatusCode::NO_CONTENT);
     Ok(())
 }
@@ -65,7 +67,7 @@ async fn test_endpoint_patch_user_bad() -> Result<()> {
     let (server, _) = test_server().await?;
     let response = server
         .patch("/users/ebk6yszjd43bl4k2sry1")
-        .json(&json!(bad_json()))
+        .json(&json!(BadJson::new()))
         .await;
 
     response.assert_status(StatusCode::BAD_REQUEST);
@@ -89,7 +91,7 @@ async fn test_endpoint_put_user_bad() -> Result<()> {
     let (server, _) = test_server().await?;
     let response = server
         .put("/users/ebk6yszjd43bl4k2sry1")
-        .json(&json!(bad_json()))
+        .json(&json!(BadJson::new()))
         .await;
 
     response.assert_status(StatusCode::UNPROCESSABLE_ENTITY);

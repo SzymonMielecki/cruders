@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::{engine::local::Db as LocalDb, sql::Thing, Surreal};
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct User {
     pub id: Option<Thing>,
     pub name: String,
@@ -14,17 +14,17 @@ pub struct StripedUser {
     pub lastname: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct PatchUserSchema {
     pub name: Option<String>,
     pub lastname: Option<String>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Serialize)]
 pub struct PatchUserName {
     pub name: String,
 }
-#[derive(Deserialize, Serialize)]
+#[derive(Serialize)]
 pub struct PatchUserLastname {
     pub lastname: String,
 }

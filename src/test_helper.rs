@@ -93,7 +93,8 @@ pub fn record_2_from_id(id: String) -> User {
 pub struct BadJson {
     bad: u32,
 }
-
-pub fn bad_json() -> BadJson {
-    BadJson { bad: 223 }
+impl BadJson {
+    pub fn new() -> BadJson {
+        BadJson { bad: 223 }
+    }
 }
