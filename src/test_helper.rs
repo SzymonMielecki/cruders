@@ -7,7 +7,7 @@ use surrealdb::{
 
 use crate::{
     db::init_users_db,
-    model::{Db, NamePatch, StripedUser, User},
+    model::{Db, NamePatch, PatchUserSchema, StripedUser, User},
     route::{create_router, join_router_db},
 };
 
@@ -45,6 +45,9 @@ pub fn record_1() -> User {
         lastname: String::from("Doe"),
     }
 }
+pub fn record_1_id() -> String {
+    "ebk6yszjd43bl4k2sry1".into()
+}
 
 pub fn record_1_patched() -> User {
     User {
@@ -64,8 +67,11 @@ pub fn stripped_from_full(user: User) -> StripedUser {
     }
 }
 
-pub fn patch_name_from_full(user: User) -> NamePatch {
-    NamePatch { name: user.name }
+pub fn patch_name_from_full(user: User) -> PatchUserSchema {
+    PatchUserSchema {
+        name: Some(user.name),
+        lastname: None,
+    }
 }
 
 pub fn record_2() -> User {

@@ -14,7 +14,7 @@ pub struct StripedUser {
     pub lastname: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct PatchUserSchema {
     pub name: Option<String>,
     pub lastname: Option<String>,

@@ -1,117 +1,60 @@
-use axum::http::StatusCode;
-use serde_json::json;
+use crate::db::{
+    delete_user, get_all_users, get_single_user, init_users_db, patch_user, post_user, put_user,
+};
+use crate::model::{Db, PatchUserLastname, PatchUserName, PatchUserSchema, StripedUser, User};
+use crate::test_helper::{
+    patch_name_from_full, record_1_id, record_2, stripped_from_full, test_server, BadJson,
+};
 use surrealdb::Result;
 
-use crate::test_helper::{
-    patch_name_from_full, record_2, stripped_from_full, test_server, BadJson,
-};
-
+pub async fn test_db() -> Result<Db> {
+    let (_, db) = test_server().await?;
+    Ok(db)
+}
 #[tokio::test]
-async fn test_endpoint_get_all_users_good() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server.get("/users").await;
-
-    response.assert_status(StatusCode::OK);
+pub async fn test_func_get_all() -> Result<()> {
+    let db = test_db().await?;
+    assert!(get_all_users(&db).await.is_ok());
     Ok(())
 }
 
 #[tokio::test]
-async fn test_endpoint_get_single_user_good() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server.get("/users/ebk6yszjd43bl4k2sry1").await;
-
-    response.assert_status(StatusCode::OK);
+pub async fn test_func_post() -> Result<()> {
+    let db = test_db().await?;
+    assert!(post_user(&db, record_2()).await.is_ok());
     Ok(())
 }
 
 #[tokio::test]
-async fn test_endpoint_get_single_user_bad() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server.get("/users/mswwd6mcdx0zwxci5hlr").await;
-
-    response.assert_status(StatusCode::BAD_REQUEST);
+pub async fn test_func_get_single() -> Result<()> {
+    let db = test_db().await?;
+    assert!(get_single_user(&db, record_1_id()).await.is_ok());
     Ok(())
 }
 
 #[tokio::test]
-async fn test_endpoint_post_user_good() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server.post("/users").json(&json!(record_2())).await;
-
-    response.assert_status(StatusCode::CREATED);
+pub async fn test_func_patch() -> Result<()> {
+    let db = test_db().await?;
+    assert!(
+        patch_user(&db, record_1_id(), patch_name_from_full(record_2()))
+            .await
+            .is_ok()
+    );
     Ok(())
 }
 
 #[tokio::test]
-async fn test_endpoint_post_user_bad() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server.post("/users").json(&json!(BadJson::new())).await;
-
-    response.assert_status(StatusCode::UNPROCESSABLE_ENTITY);
+pub async fn test_func_put() -> Result<()> {
+    let db = test_db().await?;
+    assert!(put_user(&db, record_1_id(), stripped_from_full(record_2()))
+        .await
+        .is_ok());
     Ok(())
 }
 
 #[tokio::test]
-async fn test_endpoint_patch_user_good() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server
-        .patch("/users/ebk6yszjd43bl4k2sry1")
-        .json(&json!(patch_name_from_full(record_2())))
-        .await;
-
-    response.assert_status(StatusCode::NO_CONTENT);
-    Ok(())
-}
-#[tokio::test]
-async fn test_endpoint_patch_user_bad() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server
-        .patch("/users/ebk6yszjd43bl4k2sry1")
-        .json(&json!(BadJson::new()))
-        .await;
-
-    response.assert_status(StatusCode::BAD_REQUEST);
-    Ok(())
-}
-
-#[tokio::test]
-async fn test_endpoint_put_user_good() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server
-        .put("/users/ebk6yszjd43bl4k2sry1")
-        .json(&json!(stripped_from_full(record_2())))
-        .await;
-
-    response.assert_status(StatusCode::NO_CONTENT);
-    Ok(())
-}
-
-#[tokio::test]
-async fn test_endpoint_put_user_bad() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server
-        .put("/users/ebk6yszjd43bl4k2sry1")
-        .json(&json!(BadJson::new()))
-        .await;
-
-    response.assert_status(StatusCode::UNPROCESSABLE_ENTITY);
-    Ok(())
-}
-
-#[tokio::test]
-async fn test_endpoint_delete_user_good() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server.delete("/users/ebk6yszjd43bl4k2sry1").await;
-
-    response.assert_status(StatusCode::NO_CONTENT);
-    Ok(())
-}
-
-#[tokio::test]
-async fn test_endpoint_delete_user_bad() -> Result<()> {
-    let (server, _) = test_server().await?;
-    let response = server.delete("/users/mswwd6mcdx0zwxci5hlr").await;
-
-    response.assert_status(StatusCode::BAD_REQUEST);
+pub async fn test_func_delte() -> Result<()> {
+    let db = test_db().await?;
+    assert!(delete_user(&db, record_1_id()).await.is_ok());
     Ok(())
 }

@@ -1,14 +1,12 @@
-mod handler;
-mod model;
-mod route;
-mod test_helper;
-use crate::route::{create_router, join_router_db};
-mod db;
 use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method,
 };
 use tower_http::cors::CorsLayer;
+use utils::{
+    db,
+    route::{create_router, join_router_db},
+};
 
 #[tokio::main]
 async fn main() -> surrealdb::Result<()> {
@@ -28,7 +26,3 @@ async fn main() -> surrealdb::Result<()> {
         .unwrap();
     Ok(())
 }
-#[cfg(test)]
-mod integration_tests;
-#[cfg(test)]
-mod unit_tests;

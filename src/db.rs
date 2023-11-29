@@ -4,7 +4,8 @@ use surrealdb::Surreal;
 use crate::model::{Db, PatchUserLastname, PatchUserName, PatchUserSchema, StripedUser, User};
 
 pub async fn init_users_db() -> surrealdb::Result<Db> {
-    Surreal::new::<Mem>(()).await
+    let db = Surreal::new::<Mem>(()).await?;
+    Ok(db)
 }
 
 pub async fn post_user(db: &Db, user: User) -> surrealdb::Result<String> {
