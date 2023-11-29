@@ -5,6 +5,7 @@ use crate::model::{Db, PatchUserLastname, PatchUserName, PatchUserSchema, Stripe
 
 pub async fn init_users_db() -> surrealdb::Result<Db> {
     let db = Surreal::new::<Mem>(()).await?;
+    db.use_ns("users").use_db("users").await?;
     Ok(db)
 }
 
