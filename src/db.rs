@@ -1,7 +1,10 @@
 use surrealdb::engine::local::Mem;
 use surrealdb::Surreal;
 
-use crate::model::{Db, PatchUserLastname, PatchUserName, PatchUserSchema, StripedUser, User};
+use crate::model::{
+    Db, PatchUserBirthyear, PatchUserGroup, PatchUserLastname, PatchUserName, PatchUserSchema,
+    StripedUser, User,
+};
 
 pub async fn init_users_db() -> surrealdb::Result<Db> {
     let db = Surreal::new::<Mem>(()).await?;
@@ -49,7 +52,7 @@ pub async fn patch_user(db: &Db, id: String, body: PatchUserSchema) -> surrealdb
     let mut opt: Option<User> = None;
     if body.name.is_some() {
         opt = db
-            .update(("users", id.to_owned()))
+            .update(("users", id.clone()))
             .merge(PatchUserName {
                 name: body.name.unwrap(),
             })
@@ -57,9 +60,25 @@ pub async fn patch_user(db: &Db, id: String, body: PatchUserSchema) -> surrealdb
     }
     if body.lastname.is_some() {
         opt = db
-            .update(("users", id))
+            .update(("users", id.clone()))
             .merge(PatchUserLastname {
                 lastname: body.lastname.unwrap(),
+            })
+            .await?;
+    }
+    if body.birthyear.is_some() {
+        opt = db
+            .update(("users", id.clone()))
+            .merge(PatchUserBirthyear {
+                birthyear: body.birthyear.unwrap(),
+            })
+            .await?;
+    }
+    if body.group.is_some() {
+        opt = db
+            .update(("users", id.clone()))
+            .merge(PatchUserGroup {
+                group: body.group.unwrap(),
             })
             .await?;
     }

@@ -45,7 +45,7 @@ async fn test_endpoint_post_user_good() -> Result<()> {
 #[tokio::test]
 async fn test_endpoint_post_user_bad() -> Result<()> {
     let (server, _) = test_server().await?;
-    let response = server.post("/users").json(&json!(BadJson::new())).await;
+    let response = server.post("/users").json(&json!(BadJson::default())).await;
 
     response.assert_status(StatusCode::UNPROCESSABLE_ENTITY);
     Ok(())
@@ -67,7 +67,7 @@ async fn test_endpoint_patch_user_bad() -> Result<()> {
     let (server, _) = test_server().await?;
     let response = server
         .patch("/users/ebk6yszjd43bl4k2sry1")
-        .json(&json!(BadJson::new()))
+        .json(&json!(BadJson::default()))
         .await;
 
     response.assert_status(StatusCode::BAD_REQUEST);
@@ -91,7 +91,7 @@ async fn test_endpoint_put_user_bad() -> Result<()> {
     let (server, _) = test_server().await?;
     let response = server
         .put("/users/ebk6yszjd43bl4k2sry1")
-        .json(&json!(BadJson::new()))
+        .json(&json!(BadJson::default()))
         .await;
 
     response.assert_status(StatusCode::UNPROCESSABLE_ENTITY);

@@ -7,7 +7,7 @@ use axum::{
 
 use crate::{
     db::{delete_user, get_all_users, get_single_user, patch_user, post_user, put_user},
-    model::{Db, PatchUserSchema, StripedUser, User},
+    model::{Db, OutUser, PatchUserSchema, StripedUser, User},
     test_helper::stripped_from_full,
 };
 
@@ -15,7 +15,13 @@ pub async fn get_user_all_handler(State(db): State<Db>) -> impl IntoResponse {
     let users_res = get_all_users(&db).await;
 
     match users_res {
-        Ok(users) => Json(users).into_response(),
+        Ok(users) => Json(
+            users
+                .into_iter()
+                .map(|u| u.into())
+                .collect::<Vec<OutUser>>(),
+        )
+        .into_response(),
         Err(_) => StatusCode::BAD_REQUEST.into_response(),
     }
 }
@@ -28,7 +34,7 @@ pub async fn get_user_single_handler(
 
     match user {
         Err(_) => StatusCode::BAD_REQUEST.into_response(),
-        Ok(user) => Json(stripped_from_full(user)).into_response(),
+        Ok(user) => Json(OutUser::from(user)).into_response(),
     }
 }
 
@@ -36,10 +42,16 @@ pub async fn post_user_handler(
     State(db): State<Db>,
     Json(body): Json<StripedUser>,
 ) -> impl IntoResponse {
+    if body.group != "user" && body.group != "admin" && body.group != "premium" {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+
     let record = User {
         id: None,
         name: body.name,
         lastname: body.lastname,
+        birthyear: body.birthyear,
+        group: body.group,
     };
 
     let res = post_user(&db, record).await;

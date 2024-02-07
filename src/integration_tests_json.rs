@@ -2,7 +2,7 @@ use serde_json::json;
 use surrealdb::Result;
 
 use crate::{
-    model::{StripedUser, User},
+    model::{OutUser, StripedUser, User},
     test_helper::{
         patch_name_from_full, record_1, record_1_patched, record_2, record_2_from_id,
         stripped_from_full, test_db_empty_raw, test_db_raw, test_server,
@@ -27,11 +27,11 @@ async fn test_get_all_post_good() -> Result<()> {
         .await;
     let response = server.get("/users").await;
 
-    let json = response.json::<Vec<User>>();
+    let json = response.json::<Vec<OutUser>>();
 
     let id: String = id_res.text();
 
-    assert!(json.contains(&record_2_from_id(id)));
+    assert!(json.contains(&OutUser::from(record_2_from_id(id))));
     Ok(())
 }
 
@@ -40,7 +40,7 @@ async fn test_get_single_no_modify_good() -> Result<()> {
     let (server, _) = test_server().await?;
     let response = server.get("/users/ebk6yszjd43bl4k2sry1").await;
 
-    response.assert_json(&json!(stripped_from_full(record_1())));
+    response.assert_json(&json!(OutUser::from(record_1())));
     Ok(())
 }
 
@@ -58,9 +58,9 @@ async fn test_get_single_post_good() -> Result<()> {
 
     let response = server.get(&path).await;
 
-    let json = response.json::<StripedUser>();
+    let json = response.json::<OutUser>();
 
-    assert_eq!(json, stripped_from_full(record_2_from_id(id)));
+    assert_eq!(json, OutUser::from(record_2_from_id(id)));
     Ok(())
 }
 
@@ -73,7 +73,7 @@ async fn test_get_single_patch_good() -> Result<()> {
         .await;
     let response = server.get("/users/ebk6yszjd43bl4k2sry1").await;
 
-    response.assert_json(&json!(stripped_from_full(record_1_patched())));
+    response.assert_json(&json!(OutUser::from(record_1_patched())));
     Ok(())
 }
 
@@ -86,7 +86,7 @@ async fn test_get_single_put_modify_good() -> Result<()> {
         .await;
     let response = server.get("/users/ebk6yszjd43bl4k2sry1").await;
 
-    response.assert_json(&json!(stripped_from_full(record_2())));
+    response.assert_json(&json!(OutUser::from(record_2())));
     Ok(())
 }
 
@@ -99,7 +99,7 @@ async fn test_get_single_put_new_good() -> Result<()> {
         .await;
     let response = server.get("/users/mswwd6mcdx0zwxci5hlr").await;
 
-    response.assert_json(&json!(stripped_from_full(record_2())));
+    response.assert_json(&json!(OutUser::from(record_2())));
     Ok(())
 }
 

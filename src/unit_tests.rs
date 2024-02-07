@@ -1,7 +1,7 @@
 use crate::db::{
     delete_user, get_all_users, get_single_user, init_users_db, patch_user, post_user, put_user,
 };
-use crate::model::{Db, PatchUserLastname, PatchUserName, PatchUserSchema, StripedUser, User};
+use crate::model::{User, Db, PatchUserLastname, PatchUserName, PatchUserSchema, StripedUser};
 use crate::test_helper::{
     patch_name_from_full, record_1_id, record_2, stripped_from_full, test_server, BadJson,
 };

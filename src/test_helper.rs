@@ -7,7 +7,7 @@ use surrealdb::{
 
 use crate::{
     db::init_users_db,
-    model::{Db, NamePatch, PatchUserSchema, StripedUser, User},
+    model::{Db, OutUser, PatchUserSchema, StripedUser, User},
     route::{create_router, join_router_db},
 };
 
@@ -27,8 +27,8 @@ pub async fn test_server() -> Result<(TestServer, Db)> {
     Ok((server, db))
 }
 
-pub fn test_db_raw() -> Vec<User> {
-    vec![record_1()]
+pub fn test_db_raw() -> Vec<OutUser> {
+    vec![OutUser::from(record_1())]
 }
 
 pub fn test_db_empty_raw() -> Vec<User> {
@@ -43,6 +43,8 @@ pub fn record_1() -> User {
         }),
         name: String::from("John"),
         lastname: String::from("Doe"),
+        birthyear: 1984,
+        group: String::from("admin"),
     }
 }
 pub fn record_1_id() -> String {
@@ -55,6 +57,8 @@ pub fn record_1_patched() -> User {
             tb: "users".into(),
             id: Id::String("ebk6yszjd43bl4k2sry1".into()),
         }),
+        birthyear: 1984,
+        group: "admin".into(),
         name: String::from("Jan"),
         lastname: String::from("Doe"),
     }
@@ -64,6 +68,8 @@ pub fn stripped_from_full(user: User) -> StripedUser {
     StripedUser {
         name: user.name,
         lastname: user.lastname,
+        birthyear: user.birthyear,
+        group: user.group.to_string(),
     }
 }
 
@@ -71,15 +77,18 @@ pub fn patch_name_from_full(user: User) -> PatchUserSchema {
     PatchUserSchema {
         name: Some(user.name),
         lastname: None,
+        birthyear: None,
+        group: None,
     }
 }
 
 pub fn record_2() -> User {
     User {
         id: None,
-
         name: String::from("Jan"),
         lastname: String::from("Kowalski"),
+        birthyear: 2003,
+        group: "user".into(),
     }
 }
 
@@ -92,6 +101,8 @@ pub fn record_2_from_id(id: String) -> User {
 
         name: String::from("Jan"),
         lastname: String::from("Kowalski"),
+        birthyear: 2003,
+        group: "user".into(),
     }
 }
 
@@ -99,8 +110,9 @@ pub fn record_2_from_id(id: String) -> User {
 pub struct BadJson {
     bad: u32,
 }
-impl BadJson {
-    pub fn new() -> BadJson {
-        BadJson { bad: 223 }
+
+impl Default for BadJson {
+    fn default() -> Self {
+        Self { bad: 223 }
     }
 }
