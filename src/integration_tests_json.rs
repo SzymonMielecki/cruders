@@ -2,7 +2,7 @@ use serde_json::json;
 use surrealdb::Result;
 
 use crate::{
-    model::{OutUser, StripedUser, User},
+    model::OutUser,
     test_helper::{
         patch_name_from_full, record_1, record_1_patched, record_2, record_2_from_id,
         stripped_from_full, test_db_empty_raw, test_db_raw, test_server,

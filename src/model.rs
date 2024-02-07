@@ -1,8 +1,3 @@
-use fake::{
-    faker::name::{en::FirstName, raw::*},
-    locales::*,
-    Fake,
-};
 use serde::{Deserialize, Serialize};
 use surrealdb::{engine::local::Db as LocalDb, sql::Thing, Surreal};
 
@@ -30,18 +25,6 @@ impl From<User> for OutUser {
             lastname: user.lastname,
             age: 2024 - user.birthyear,
             group: user.group,
-        }
-    }
-}
-
-impl Default for User {
-    fn default() -> Self {
-        Self {
-            id: None,
-            name: FirstName().fake(),
-            lastname: LastName(EN).fake(),
-            birthyear: (1899..=2024).fake(),
-            group: "user".into(),
         }
     }
 }

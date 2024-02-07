@@ -8,7 +8,6 @@ use axum::{
 use crate::{
     db::{delete_user, get_all_users, get_single_user, patch_user, post_user, put_user},
     model::{Db, OutUser, PatchUserSchema, StripedUser, User},
-    test_helper::stripped_from_full,
 };
 
 pub async fn get_user_all_handler(State(db): State<Db>) -> impl IntoResponse {
