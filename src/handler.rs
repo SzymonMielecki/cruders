@@ -42,7 +42,10 @@ pub async fn post_user_handler(
     Json(body): Json<StripedUser>,
 ) -> impl IntoResponse {
     if body.group != "user" && body.group != "admin" && body.group != "premium" {
-        return StatusCode::BAD_REQUEST.into_response();
+        return (StatusCode::BAD_REQUEST, "Bad Group").into_response();
+    }
+    if !(1900..=2024).contains(&body.birthyear) {
+        return (StatusCode::BAD_REQUEST, "Bad Birthyear").into_response();
     }
 
     let record = User {
@@ -66,11 +69,21 @@ pub async fn patch_user_handler(
     Path(id): Path<String>,
     Json(body): Json<PatchUserSchema>,
 ) -> impl IntoResponse {
+    if body.group.is_some()
+        && body.group != Some("user".into())
+        && body.group != Some("admin".into())
+        && body.group != Some("premium".into())
+    {
+        return (StatusCode::BAD_REQUEST, "Bad Group").into_response();
+    }
+    if body.birthyear.is_some() && !(1900..=2024).contains(&body.birthyear.expect("birthyear")) {
+        return (StatusCode::BAD_REQUEST, "Bad Birthyear").into_response();
+    }
     let res = patch_user(&db, id, body).await;
 
     match res {
-        Ok(_) => StatusCode::NO_CONTENT,
-        Err(_) => StatusCode::BAD_REQUEST,
+        Ok(_) => StatusCode::NO_CONTENT.into_response(),
+        Err(_) => StatusCode::BAD_REQUEST.into_response(),
     }
 }
 
@@ -79,11 +92,17 @@ pub async fn put_user_handler(
     Path(id): Path<String>,
     Json(body): Json<StripedUser>,
 ) -> impl IntoResponse {
+    if body.group != "user" && body.group != "admin" && body.group != "premium" {
+        return (StatusCode::BAD_REQUEST, "Bad Group").into_response();
+    }
+    if !(1900..=2024).contains(&body.birthyear) {
+        return (StatusCode::BAD_REQUEST, "Bad Birthyear").into_response();
+    }
     let res = put_user(&db, id, body).await;
 
     match res {
-        Ok(_) => StatusCode::NO_CONTENT,
-        Err(_) => StatusCode::BAD_REQUEST,
+        Ok(_) => StatusCode::NO_CONTENT.into_response(),
+        Err(_) => StatusCode::BAD_REQUEST.into_response(),
     }
 }
 
@@ -94,7 +113,7 @@ pub async fn delete_user_handler(
     let res = delete_user(&db, id).await;
 
     match res {
-        Ok(_) => StatusCode::NO_CONTENT,
-        Err(_) => StatusCode::BAD_REQUEST,
+        Ok(_) => StatusCode::NO_CONTENT.into_response(),
+        Err(_) => StatusCode::BAD_REQUEST.into_response(),
     }
 }
