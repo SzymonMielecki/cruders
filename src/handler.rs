@@ -14,13 +14,7 @@ pub async fn get_user_all_handler(State(db): State<Db>) -> impl IntoResponse {
     let users_res = get_all_users(&db).await;
 
     match users_res {
-        Ok(users) => Json(
-            users
-                .into_iter()
-                .map(|u| u.into())
-                .collect::<Vec<OutUser>>(),
-        )
-        .into_response(),
+        Ok(users) => Json(users).into_response(),
         Err(_) => StatusCode::BAD_REQUEST.into_response(),
     }
 }
