@@ -7,7 +7,7 @@ use axum::{
 
 use crate::{
     db::{delete_user, get_all_users, get_single_user, patch_user, post_user, put_user},
-    model::{Db, OutUser, PatchUserSchema, StripedUser, User},
+    model::{Db, PatchUserSchema, StripedUser, User},
 };
 
 pub async fn get_user_all_handler(State(db): State<Db>) -> impl IntoResponse {
@@ -26,8 +26,8 @@ pub async fn get_user_single_handler(
     let user = get_single_user(&db, id).await;
 
     match user {
-        Err(_) => StatusCode::BAD_REQUEST.into_response(),
-        Ok(user) => Json(OutUser::from(user)).into_response(),
+        Ok(user) => Json(user).into_response(),
+        Err(_) => (StatusCode::BAD_REQUEST, "Id not found").into_response(),
     }
 }
 

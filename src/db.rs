@@ -42,11 +42,13 @@ pub async fn get_single_user(db: &Db, id: String) -> surrealdb::Result<OutUser> 
 pub async fn patch_user(db: &Db, id: String, body: PatchUserSchema) -> surrealdb::Result<OutUser> {
     db.use_ns("users").use_db("users").await?;
     println!("{:?}", body);
-    if body.lastname.is_none() && body.name.is_none()
-        || body.lastname.is_some() && body.name.is_some()
+    if body.lastname.is_none()
+        && body.name.is_none()
+        && body.birthyear.is_none()
+        && body.group.is_none()
     {
         return Err(surrealdb::Error::Api(surrealdb::error::Api::Http(
-            "wrong request".into(),
+            "Bad Request".into(),
         )));
     }
 
