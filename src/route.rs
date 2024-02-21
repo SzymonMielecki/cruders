@@ -3,11 +3,12 @@ use crate::{
         delete_user_handler, get_user_all_handler, get_user_single_handler, patch_user_handler,
         post_user_handler, put_user_handler,
     },
+    logic::AppState,
     model::Db,
 };
-use axum::{routing::get, Router};
+use axum::routing::{get, Router};
 
-pub fn create_router() -> Router<Db> {
+pub fn create_router() -> Router<AppState> {
     Router::new()
         .route("/users", get(get_user_all_handler).post(post_user_handler))
         .route(
@@ -19,6 +20,6 @@ pub fn create_router() -> Router<Db> {
         )
 }
 
-pub fn join_router_db(router: Router<Db>, db: Db) -> Router {
-    router.with_state(db)
+pub fn join_router_db(router: Router<AppState>, state: AppState) -> Router {
+    router.with_state(state)
 }

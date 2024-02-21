@@ -4,6 +4,7 @@ pub mod handler;
 pub mod integration_tests_json;
 #[cfg(test)]
 pub mod integration_tests_status;
+pub mod logic;
 pub mod model;
 pub mod route;
 pub mod test_helper;

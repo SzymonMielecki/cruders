@@ -2,7 +2,7 @@ use axum::http::StatusCode;
 use serde_json::json;
 use surrealdb::Result;
 
-use crate::test_helper::{
+use super::test_helper::{
     patch_name_from_full, record_2, stripped_from_full, test_server, BadJson,
 };
 

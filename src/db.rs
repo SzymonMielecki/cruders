@@ -1,15 +1,17 @@
 use surrealdb::engine::local::Mem;
 use surrealdb::Surreal;
 
-use crate::model::{
+use crate::logic::AppState;
+
+use super::model::{
     Db, OutUser, PatchUserBirthyear, PatchUserGroup, PatchUserLastname, PatchUserName,
     PatchUserSchema, StripedUser, User,
 };
 
-pub async fn init_users_db() -> surrealdb::Result<Db> {
+pub async fn init_users_db() -> surrealdb::Result<AppState> {
     let db = Surreal::new::<Mem>(()).await?;
     db.use_ns("users").use_db("users").await?;
-    Ok(db)
+    Ok(AppState::new(db))
 }
 
 pub async fn post_user(db: &Db, user: User) -> surrealdb::Result<String> {
@@ -29,8 +31,9 @@ pub async fn get_all_users(db: &Db) -> surrealdb::Result<Vec<OutUser>> {
 
 pub async fn get_single_user(db: &Db, id: String) -> surrealdb::Result<OutUser> {
     db.use_ns("users").use_db("users").await?;
+
     let opt: Option<User> = db.select(("users", &id)).await?;
-    println!("{:?}", opt);
+
     match opt {
         Some(user) => Ok(user.into()),
         None => Err(surrealdb::Error::Db(surrealdb::error::Db::PaNotFound {
@@ -41,7 +44,7 @@ pub async fn get_single_user(db: &Db, id: String) -> surrealdb::Result<OutUser> 
 
 pub async fn patch_user(db: &Db, id: String, body: PatchUserSchema) -> surrealdb::Result<OutUser> {
     db.use_ns("users").use_db("users").await?;
-    println!("{:?}", body);
+
     if body.lastname.is_none()
         && body.name.is_none()
         && body.birthyear.is_none()

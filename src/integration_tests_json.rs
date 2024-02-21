@@ -1,7 +1,7 @@
 use serde_json::json;
 use surrealdb::Result;
 
-use crate::{
+use super::{
     model::OutUser,
     test_helper::{
         patch_name_from_full, record_1, record_1_patched, record_2, record_2_from_id,

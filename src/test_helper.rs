@@ -5,14 +5,16 @@ use surrealdb::{
     Result,
 };
 
-use crate::{
+use crate::logic::AppState;
+
+use super::{
     db::init_users_db,
-    model::{Db, OutUser, PatchUserSchema, StripedUser, User},
+    model::{OutUser, PatchUserSchema, StripedUser, User},
     route::{create_router, join_router_db},
 };
 
-pub async fn test_server() -> Result<(TestServer, Db)> {
-    let db = init_users_db().await?;
+pub async fn test_server() -> Result<(TestServer, AppState)> {
+    let db = init_users_db().await?.db;
     db.use_ns("users").use_db("users").await?;
 
     let _: Option<User> = db
@@ -20,11 +22,11 @@ pub async fn test_server() -> Result<(TestServer, Db)> {
         .content(stripped_from_full(record_1()))
         .await?;
 
-    let app = join_router_db(create_router(), db.clone());
+    let app = join_router_db(create_router(), AppState::new(db.clone()));
 
     let server = TestServer::new(app).unwrap();
 
-    Ok((server, db))
+    Ok((server, AppState::new(db)))
 }
 
 pub fn test_db_raw() -> Vec<OutUser> {
