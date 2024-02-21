@@ -89,7 +89,7 @@ pub async fn patch_user(db: &Db, id: String, body: PatchUserSchema) -> surrealdb
     match opt {
         Some(user) => Ok(user.into()),
         None => Err(surrealdb::Error::Api(surrealdb::error::Api::Http(
-            "wrong request".into(),
+            "Bad request".into(),
         ))),
     }
 }
@@ -122,7 +122,7 @@ pub async fn delete_user(db: &Db, id: String) -> surrealdb::Result<OutUser> {
             Ok(tmp.unwrap().into())
         }
         None => Err(surrealdb::Error::Api(surrealdb::error::Api::Http(
-            "wrong request".into(),
+            "Bad request".into(),
         ))),
     }
 }
