@@ -10,7 +10,7 @@ use crate::logic::AppState;
 use super::{
     db::init_users_db,
     model::{OutUser, PatchUserSchema, StripedUser, User},
-    route::{create_router, join_router_db},
+    route::create_router,
 };
 
 pub async fn test_server() -> Result<(TestServer, AppState)> {
@@ -22,7 +22,7 @@ pub async fn test_server() -> Result<(TestServer, AppState)> {
         .content(stripped_from_full(record_1()))
         .await?;
 
-    let app = join_router_db(create_router(), AppState::new(db.clone()));
+    let app = create_router(AppState::new(db.clone()));
 
     let server = TestServer::new(app).unwrap();
 

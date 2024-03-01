@@ -5,9 +5,10 @@ use axum::{
     Json,
 };
 
-use crate::logic::AppState;
-
-use super::model::{Db, PatchUserSchema, StripedUser, User};
+use crate::{
+    logic::{AppState, StateTrait},
+    model::{PatchUserSchema, StripedUser},
+};
 
 pub async fn get_user_all_handler(State(state): State<AppState>) -> impl IntoResponse {
     let users_res = state.get_all_users_logic().await;

@@ -3,10 +3,7 @@ use axum::http::{
     HeaderValue, Method,
 };
 use tower_http::cors::CorsLayer;
-use utils::{
-    db,
-    route::{create_router, join_router_db},
-};
+use utils::{db, route::create_router};
 
 #[tokio::main]
 async fn main() -> surrealdb::Result<()> {
@@ -18,7 +15,7 @@ async fn main() -> surrealdb::Result<()> {
 
     let db = db::init_users_db().await?;
 
-    let app = join_router_db(create_router().layer(cors), db);
+    let app = create_router(db).layer(cors);
     println!("🚀 Server started successfully");
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
